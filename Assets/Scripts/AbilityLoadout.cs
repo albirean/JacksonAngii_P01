@@ -14,7 +14,7 @@ public class AbilityLoadout : MonoBehaviour
 
     public void UseEquippedAbility(Transform target)
     {
-        EquippedAbility.Use(this.transform, target);
+        EquippedAbility.Use();
     }
 
     public void RemoveCurrentAbilityObject()

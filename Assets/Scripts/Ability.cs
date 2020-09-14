@@ -4,5 +4,5 @@ using UnityEngine;
 
 public abstract class Ability : MonoBehaviour
 {
-    public abstract void Use(Transform origin, Transform target);
+    public abstract void Use();
 }

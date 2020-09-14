@@ -11,6 +11,7 @@ public class ThirdPersonMovement : MonoBehaviour
     public event Action StartFalling = delegate { };
     public event Action Landing = delegate { };
     public event Action Sprinting = delegate { };
+    public event Action Healing = delegate { };
 
     public CharacterController controller;
     public Transform cam;
@@ -28,6 +29,10 @@ public class ThirdPersonMovement : MonoBehaviour
 
     float turnSmoothVelocity;
     bool _isMoving = false;
+
+    bool _isHealing = false;
+
+    [SerializeField] AudioSource _healSound = null;
 
 
     private void Start()
@@ -95,7 +100,16 @@ public class ThirdPersonMovement : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.LeftShift))
                 {
                     Sprint();
-                    _isSprinting = true;
+                    if (Input.GetKeyDown(KeyCode.Mouse0))
+                    {
+                        _isHealing = true;
+                        OnHealing();
+                    }
+                    else
+                    {
+                        _isSprinting = true;
+                    }
+                    
                 }
 
             }
@@ -106,6 +120,12 @@ public class ThirdPersonMovement : MonoBehaviour
         else
         {
             CheckIfStoppedMoving();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            _isHealing = true;
+            OnHealing();
         }
     }
 
@@ -134,8 +154,15 @@ public class ThirdPersonMovement : MonoBehaviour
     {
         if(_isMoving == false)
         {
-            StartRunning?.Invoke();
-            Debug.Log("Started");
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                _isHealing = true;
+                OnHealing();
+            } else
+            {
+                StartRunning?.Invoke();
+                Debug.Log("Started");
+            }
         }
         _isMoving = true;
     }
@@ -144,8 +171,17 @@ public class ThirdPersonMovement : MonoBehaviour
     {
         if(_isMoving == true)
         {
-            Idle?.Invoke();
-            Debug.Log("Stopped");
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                _isHealing = true;
+                OnHealing();
+            }
+            else
+            {
+                Idle?.Invoke();
+                Debug.Log("Stopped");
+            }
+            
         }
         _isMoving = false;
     }
@@ -177,6 +213,16 @@ public class ThirdPersonMovement : MonoBehaviour
         if(_isSprinting == true)
         {
             Sprinting?.Invoke();
+        }
+    }
+
+    private void OnHealing()
+    {
+        
+        if(_isHealing == true)
+        {
+            _healSound.Play();
+            Healing?.Invoke();
         }
     }
 }

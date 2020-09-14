@@ -14,6 +14,7 @@ public class PlayerCharacterAnimator : MonoBehaviour
     const string FallState = "Falling";
     const string LandState = "Landing";
     const string SprintState = "Sprinting";
+    const string HealState = "Floating";
 
     Animator _animator = null;
 
@@ -47,6 +48,11 @@ public class PlayerCharacterAnimator : MonoBehaviour
         _animator.CrossFadeInFixedTime(SprintState, .2f);
     }
 
+    private void OnHealing()
+    {
+        _animator.CrossFadeInFixedTime(HealState, .2f);
+    }
+
     private void OnEnable()
     {
         _thirdPersonMovement.Idle += OnIdle;
@@ -54,6 +60,7 @@ public class PlayerCharacterAnimator : MonoBehaviour
         _thirdPersonMovement.StartJumping += OnJumping;
         _thirdPersonMovement.Landing += OnLanding;
         _thirdPersonMovement.Sprinting += OnSprinting;
+        _thirdPersonMovement.Healing += OnHealing;
     }
 
     private void OnDisable()
@@ -63,5 +70,6 @@ public class PlayerCharacterAnimator : MonoBehaviour
         _thirdPersonMovement.StartJumping -= OnJumping;
         _thirdPersonMovement.Landing -= OnLanding;
         _thirdPersonMovement.Sprinting -= OnSprinting;
+        _thirdPersonMovement.Healing -= OnHealing;
     }
 }

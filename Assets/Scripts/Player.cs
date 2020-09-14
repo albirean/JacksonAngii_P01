@@ -6,40 +6,31 @@ public class Player : MonoBehaviour
 {
     [SerializeField] AbilityLoadout _abilityLoadout;
     [SerializeField] Ability _startingAbility;
-    [SerializeField] Ability _newAbilityToTest;
 
-    [SerializeField] Transform _testTarget = null;
-
-    public Transform CurrentTarget { get; private set; }
+    private Transform _self = null;
+    [SerializeField] GameObject _healShield = null;
 
     private void Awake()
     {
+        _healShield.SetActive(false);
+        _self = GetComponent<Transform>();
+
         if(_startingAbility != null)
         {
             _abilityLoadout?.EquipAbility(_startingAbility);
         }
     }
 
-    public void SetTarget(Transform newTarget)
-    {
-        CurrentTarget = newTarget;
-    }
-
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
+        if (Input.GetKey(KeyCode.Mouse0))
         {
-            _abilityLoadout.UseEquippedAbility(CurrentTarget);
+            _abilityLoadout.UseEquippedAbility(_self);
+            _healShield.SetActive(true);
         }
-
-        if (Input.GetKeyDown(KeyCode.Tab))
+        else
         {
-            _abilityLoadout.EquipAbility(_newAbilityToTest);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            SetTarget(_testTarget);
+            _healShield.SetActive(false);
         }
     }
 }

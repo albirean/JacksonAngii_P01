@@ -5,6 +5,7 @@ using UnityEngine;
 public class Health : MonoBehaviour
 {
     int _currentHealth = 50;
+    public bool isHealed = false;
 
     public void Heal(int amount)
     {
