@@ -17,8 +17,9 @@ public class CureAoE : Ability
 
     private void FixedUpdate()
     {
-        Use();
+
     }
+
     public override void Use()
     {
         Debug.Log("Button Pressed");

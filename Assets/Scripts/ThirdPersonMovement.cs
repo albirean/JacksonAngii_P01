@@ -12,9 +12,12 @@ public class ThirdPersonMovement : MonoBehaviour
     public event Action Landing = delegate { };
     public event Action Sprinting = delegate { };
     public event Action Healing = delegate { };
+    public event Action Hovering = delegate { };
+    public event Action Dead = delegate { };
 
     public CharacterController controller;
     public Transform cam;
+    [SerializeField] Health _playerHealth = null;
 
     public float speed = 6f;
     [SerializeField] float sprintSpeed = 10f;
@@ -22,17 +25,23 @@ public class ThirdPersonMovement : MonoBehaviour
     bool _isSprinting = false;
 
     bool _isJumping = false;
-    public float jumpSpeed = 8f;
+    public float jumpSpeed = 3f;
     public float gravity = 9.8f;
     private float vertSpeed = 0f;
     bool _isLanding = false;
+    bool _isFalling = false;
+    bool _isFloating = false;
 
     float turnSmoothVelocity;
     bool _isMoving = false;
 
     bool _isHealing = false;
 
+    bool _isDead = false;
+
     [SerializeField] AudioSource _healSound = null;
+    [SerializeField] AudioSource _jumpSound = null;
+    [SerializeField] AudioSource _deadSound = null;
 
 
     private void Start()
@@ -58,15 +67,20 @@ public class ThirdPersonMovement : MonoBehaviour
             if (Input.GetKey(KeyCode.Space))
             {
                 Jump();
-                if (controller.isGrounded == false) // Only Play Jump Animation In The Air
-                {
+                
                     OnJumping();
-                }
-                else if (controller.isGrounded) // Play Landing Animation After Jump But On The Ground
+
+                if (!controller.isGrounded)
                 {
-                    Land();
+                    Fall();
                 }
+                if (controller.velocity.y < 0)
+                        {
+                            Land();
+                        }
             }
+
+            
         }
 
         if (direction.magnitude >= 0.1f) // if the character is moving
@@ -87,14 +101,12 @@ public class ThirdPersonMovement : MonoBehaviour
                 if (Input.GetKey(KeyCode.Space))
                 {
                     Jump();
-                    if (controller.isGrounded == false)
-                    {
                         OnJumping();
-                    }
-                    else if (controller.isGrounded)
-                    {
-                        Land();
-                    }
+                            if (controller.velocity.y < 0)
+                            {
+                                Land();
+                            }
+                    
                 }
 
                 if (Input.GetKeyDown(KeyCode.LeftShift))
@@ -124,8 +136,19 @@ public class ThirdPersonMovement : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
+            if(controller.isGrounded == false)
+            {
+                gravity = 0;
+            }
             _isHealing = true;
             OnHealing();
+        }
+
+        if (!Input.GetKey(KeyCode.Mouse0))
+        {
+            gravity = 9.8f;
+            
+            _isFloating = false;
         }
     }
 
@@ -134,10 +157,22 @@ public class ThirdPersonMovement : MonoBehaviour
         Debug.Log("Jump Pressed");
         vertSpeed = jumpSpeed; // Jump if the Space Bar is Pressed
         _isJumping = true;
+        _jumpSound.Play();
+        OnJumping();
     }
+
+    private void Fall()
+    {
+        Debug.Log("Falling.");
+        _isFalling = true;
+        OnFalling();
+    }
+    
 
     private void Land()
     {
+        _isJumping = false;
+        _isMoving = false;
         Debug.Log("Land");
         OnLanding();
         _isLanding = true;
@@ -152,13 +187,40 @@ public class ThirdPersonMovement : MonoBehaviour
 
     private void CheckIfStartedMoving()
     {
-        if(_isMoving == false)
+        if (_playerHealth._currentHealth <= 0)
         {
+            Debug.Log("Call On Dead.");
+            speed = 0;
+            OnDead();
+            _isSprinting = false;
+
+            _isJumping = false;
+            _isLanding = false;
+            _isFalling = false;
+            _isFloating = false;
+            _isMoving = false;
+            _isHealing = false;
+            _isDead = false;
+        }
+
+        if (_isMoving == false)
+        {
+            if(_isJumping == true)
+            {
+                StartJumping?.Invoke();
+            }
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
                 _isHealing = true;
                 OnHealing();
-            } else
+
+                if(controller.isGrounded == false)
+                {
+                    _isFloating = true;
+                    OnHovering();
+                }
+            }
+            else
             {
                 StartRunning?.Invoke();
                 Debug.Log("Started");
@@ -169,12 +231,36 @@ public class ThirdPersonMovement : MonoBehaviour
 
     private void CheckIfStoppedMoving()
     {
-        if(_isMoving == true)
+        if (_playerHealth._currentHealth <= 0)
         {
+            Debug.Log("Call On Dead.");
+            speed = 0;
+            OnDead();
+            _isSprinting = false;
+
+            _isJumping = false;
+            _isLanding = false;
+            _isFalling = false;
+            _isFloating = false;
+            _isMoving = false;
+            _isHealing = false;
+            _isDead = false;
+        }
+        if (_isMoving == true)
+        {
+            if(_isJumping == true)
+            {
+                StartJumping?.Invoke();
+            }
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
                 _isHealing = true;
                 OnHealing();
+                if (controller.isGrounded == false)
+                {
+                    _isFloating = true;
+                    OnHovering();
+                }
             }
             else
             {
@@ -193,8 +279,14 @@ public class ThirdPersonMovement : MonoBehaviour
             StartJumping?.Invoke();
             Debug.Log("Jumping");
         }
+    }
 
-        _isJumping = false;
+    private void OnFalling()
+    {
+        if(_isFalling == true)
+        {
+            StartFalling?.Invoke();
+        }
     }
 
     private void OnLanding()
@@ -224,5 +316,19 @@ public class ThirdPersonMovement : MonoBehaviour
             _healSound.Play();
             Healing?.Invoke();
         }
+    }
+
+    private void OnHovering()
+    {
+        if(_isFloating == true)
+        {
+            Hovering?.Invoke();
+        }
+    }
+
+    public void OnDead()
+    {
+            Dead?.Invoke();
+            speed = 0;
     }
 }
